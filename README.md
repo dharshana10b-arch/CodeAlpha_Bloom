@@ -1,4 +1,4 @@
-# Billage 🔥
+# Bloom 
 
 A full-stack social media platform built with Express.js, MongoDB, and vanilla JS frontend with a dark red neon glassmorphism aesthetic.
 
