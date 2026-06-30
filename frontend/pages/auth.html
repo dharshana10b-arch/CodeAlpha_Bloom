@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bloom — Join the Garden</title>
+  <link rel="stylesheet" href="../assets/css/global.css">
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; background-color: var(--dark-chocolate); }
+
+    .orb { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; animation: pulse 8s ease-in-out infinite; }
+    .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(236,156,157,0.18) 0%, transparent 70%); top: -150px; left: -100px; }
+    .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%); bottom: -100px; right: -100px; animation-delay: -4s; }
+    @keyframes pulse { 0%,100% { opacity:0.7; transform:scale(1); } 50% { opacity:1; transform:scale(1.06); } }
+
+    .auth-container { width: 100%; max-width: 440px; position: relative; z-index: 1; }
+
+    .logo-wrap { text-align: center; margin-bottom: 32px; }
+    .logo { font-family: var(--font-display); font-size: 3rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; color: var(--text-warm-light); font-style: italic; }
+    .logo span { color: var(--celestial-gold); text-shadow: 0 0 15px rgba(212,175,55,0.4); }
+    .logo-tagline { font-family: var(--font-ui); font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.15em; text-transform: uppercase; margin-top: 8px; }
+
+    .auth-card {
+      background: var(--bg-card);
+      border: var(--border-gold);
+      border-radius: var(--radius-lg);
+      padding: 36px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; background: rgba(68,48,37,0.5); border-radius: var(--radius-md); padding: 4px; margin-bottom: 32px; border: 1px solid rgba(212, 175, 55, 0.15); }
+    .auth-tab { padding: 10px; text-align: center; font-family: var(--font-ui); font-size: 0.875rem; font-weight: 600; color: var(--text-muted); border-radius: 8px; cursor: pointer; transition: all var(--duration) var(--ease); }
+    .auth-tab.active { background: var(--gradient-gold-sakura); color: var(--dark-chocolate); box-shadow: 0 4px 15px rgba(212,175,55,0.25); }
+
+    .auth-form { display: flex; flex-direction: column; gap: 18px; }
+    .auth-form.hidden { display: none; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .submit-btn {
+      width: 100%; padding: 14px;
+      background: var(--gradient-gold-sakura);
+      color: var(--dark-chocolate); border: none; border-radius: var(--radius-full);
+      font-family: var(--font-ui); font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: all var(--duration) var(--ease);
+      box-shadow: 0 4px 15px rgba(212,175,55,0.2); margin-top: 6px;
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,175,55,0.35); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .terms { text-align: center; font-size: 0.75rem; color: var(--text-muted); line-height: 1.6; }
+    .terms a { color: var(--sakura); text-decoration: underline; }
+
+    .input-wrap { position: relative; }
+    .input-wrap .input { padding-right: 44px; }
+    .eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 4px; transition: color var(--duration); }
+    .eye-btn:hover { color: var(--celestial-gold); }
+
+    .strength-bar { height: 3px; border-radius: 3px; background: rgba(255,255,255,0.06); overflow: hidden; margin-top: 6px; }
+    .strength-fill { height: 100%; border-radius: 3px; transition: width 0.3s, background 0.3s; width: 0%; }
+    .strength-text { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="auth-container">
+    <div class="logo-wrap">
+      <div class="logo">🌸 <span>Bloom</span></div>
+      <div class="logo-tagline">pixel cherry blossom garden</div>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</div>
+        <div class="auth-tab" id="tab-register" onclick="switchTab('register')">Create Account</div>
+      </div>
+
+      <!-- Login -->
+      <form class="auth-form" id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Email or Username</label>
+          <input type="text" id="login-identifier" class="input" placeholder="playername or hello@email.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="login-password" class="input" placeholder="••••••••" required>
+            <button type="button" class="eye-btn" onclick="togglePw('login-password', this)">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="submit-btn" id="login-btn">Sign In</button>
+      </form>
+
+      <!-- Register -->
+      <form class="auth-form hidden" id="register-form" onsubmit="handleRegister(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Display Name</label>
+            <input type="text" id="reg-displayname" class="input" placeholder="Your Name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" id="reg-username" class="input" placeholder="@handle" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="reg-email" class="input" placeholder="hello@bloom.app" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="reg-password" class="input" placeholder="Min. 6 characters" required oninput="checkStrength(this.value)">
+            <button type="button" class="eye-btn" onclick="togglePw('reg-password', this)">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+          <div class="strength-text" id="strength-text"></div>
+        </div>
+        <button type="submit" class="submit-btn" id="register-btn">Create Account</button>
+        <p class="terms">By joining, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="../assets/js/api.js"></script>
+  <script>
+    if (api.isLoggedIn()) window.location.href = '/';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('tab') === 'register') switchTab('register');
+
+    function switchTab(tab) {
+      document.getElementById('login-form').classList.toggle('hidden', tab !== 'login');
+      document.getElementById('register-form').classList.toggle('hidden', tab !== 'register');
+      document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+      document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+    }
+
+    function togglePw(id, btn) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'text' ? 'password' : 'text';
+    }
+
+    function checkStrength(val) {
+      const fill = document.getElementById('strength-fill');
+      const text = document.getElementById('strength-text');
+      let s = 0;
+      if (val.length >= 6) s++;
+      if (val.length >= 10) s++;
+      if (/[A-Z]/.test(val)) s++;
+      if (/[0-9]/.test(val)) s++;
+      if (/[^a-zA-Z0-9]/.test(val)) s++;
+      const levels = [
+        { pct: 0, color: 'transparent', label: '' },
+        { pct: 20, color: '#ec9c9d', label: 'Weak' },
+        { pct: 45, color: '#aa7f66', label: 'Fair' },
+        { pct: 70, color: '#7f5836', label: 'Good' },
+        { pct: 85, color: '#f2cf2a', label: 'Strong' },
+        { pct: 100, color: '#d4af37', label: 'Perfect divinity' },
+      ];
+      const l = levels[Math.min(s, 5)];
+      fill.style.width = l.pct + '%';
+      fill.style.background = l.color;
+      text.textContent = l.label;
+      text.style.color = l.color;
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true; btn.textContent = 'Signing in...';
+      try {
+        const data = await api.login({
+          identifier: document.getElementById('login-identifier').value.trim(),
+          password: document.getElementById('login-password').value,
+        });
+        api.setTokens(data.accessToken, data.refreshToken);
+        api.setUser(data.user);
+        showToast('Welcome back, goddess! ⚜️', 'success');
+        setTimeout(() => window.location.href = '/', 600);
+      } catch (err) {
+        showToast(err.message || 'Login failed.', 'error');
+        btn.disabled = false; btn.textContent = 'Sign In';
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const btn = document.getElementById('register-btn');
+      const username = document.getElementById('reg-username').value.trim().replace('@', '');
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const displayName = document.getElementById('reg-displayname').value.trim();
+      if (password.length < 6) { showToast('Password must be at least 6 characters.', 'error'); return; }
+      btn.disabled = true; btn.textContent = 'Creating account...';
+      try {
+        const data = await api.register({ username, email, password, displayName });
+        api.setTokens(data.accessToken, data.refreshToken);
+        api.setUser(data.user);
+        showToast('Welcome to Bloom! 🌸', 'success');
+        setTimeout(() => window.location.href = '/', 600);
+      } catch (err) {
+        showToast(err.message || 'Registration failed.', 'error');
+        btn.disabled = false; btn.textContent = 'Create Account';
+      }
+    }
+  </script>
+</body>
+</html>

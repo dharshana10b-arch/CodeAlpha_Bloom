@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bloom — Profile</title>
+  <link rel="stylesheet" href="../assets/css/global.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/profile.css">
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span class="sidebar-logo-icon">🌸</span> Bloom</div>
+    <div class="sidebar-tagline">pixel cherry blossom garden</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="/"><span class="nav-emoji">🏡</span> Home</a>
+      <a class="nav-item" href="/pages/explore.html"><span class="nav-emoji">🔭</span> Explore</a>
+      <a class="nav-item" href="#" id="nav-chat-link" onclick="toggleChatDrawer(event)">
+        <span class="nav-emoji">✉️</span> Messages <span class="nav-badge hidden" id="nav-chat-badge">0</span>
+      </a>
+      <a class="nav-item active" href="#" id="nav-profile-link"><span class="nav-emoji">🌷</span> Profile</a>
+      <a class="nav-item" href="/pages/saved.html"><span class="nav-emoji">⚜️</span> Saved</a>
+    </nav>
+    <div class="sidebar-decor">🌸 ✵ 🍄 ✵ 🌸</div>
+    <a class="sidebar-user" id="sidebar-user-link" href="#">
+      <div id="sidebar-avatar"></div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-username" id="sidebar-display-name">—</div>
+        <div class="sidebar-handle" id="sidebar-handle">—</div>
+      </div>
+      <button class="sidebar-logout" onclick="handleLogout(event)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </a>
+  </aside>
+
+  <!-- MAIN PROFILE FEED -->
+  <main class="main-feed">
+    <div class="feed-header">
+      <div class="feed-header-inner">
+        <button onclick="history.back()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:8px;font-family:var(--font-ui);font-size:0.875rem;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </button>
+        <h2 class="feed-title" id="page-title">Profile</h2>
+      </div>
+    </div>
+
+    <div id="profile-container"><div class="spinner"></div></div>
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <aside class="right-panel">
+    <div class="search-bar">
+      <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input" placeholder="Search Bloom..." oninput="debounceSearch(this.value)" autocomplete="off">
+      <div class="search-results" id="search-results"></div>
+    </div>
+    <div class="panel-widget" id="suggestions-widget">
+      <div class="panel-widget-header">👑 Goddesses to Follow</div>
+      <div id="suggestions-list"><div class="spinner" style="width:24px;height:24px;border-width:2px;margin:16px auto;"></div></div>
+    </div>
+  </aside>
+</div>
+
+<!-- CLIENT CHAT DRAWER -->
+<div class="chat-drawer" id="chat-drawer">
+  <div class="chat-drawer-header">
+    <div class="chat-drawer-title">⚜️ Conversations</div>
+    <div class="chat-drawer-close" onclick="toggleChatDrawer(event)">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+  </div>
+  <div class="chat-drawer-body">
+    <div class="chat-screen-list" id="chat-screen-list">
+      <div class="chat-contacts" id="chat-contacts-list">
+        <div class="spinner"></div>
+      </div>
+    </div>
+    <div class="chat-screen-conversation" id="chat-screen-conversation">
+      <div class="chat-convo-header">
+        <div class="chat-convo-back" onclick="showChatListScreen()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div id="chat-convo-avatar"></div>
+        <div class="chat-convo-user">
+          <div class="chat-convo-name" id="chat-convo-name">—</div>
+          <div class="chat-convo-handle" id="chat-convo-handle">—</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages-container"></div>
+      <div class="chat-convo-input-area">
+        <input type="text" class="chat-input" id="chat-message-input" placeholder="Whisper something celestial...">
+        <button class="chat-send-btn" onclick="sendChatMessage()" title="Send">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay hidden" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 style="font-family:var(--font-display);font-size:1.1rem;font-style:italic;">Edit Profile</h3>
+      <button onclick="closeEditModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+        <div id="edit-avatar-preview"></div>
+        <div>
+          <button onclick="document.getElementById('avatar-input').click()" style="font-family:var(--font-ui);font-size:0.82rem;color:var(--celestial-gold);background:none;border:none;cursor:pointer;display:block;margin-bottom:4px;font-weight:600">Change avatar</button>
+          <button onclick="document.getElementById('cover-input').click()" style="font-family:var(--font-ui);font-size:0.82rem;color:var(--text-muted);background:none;border:none;cursor:pointer;">Change cover</button>
+          <input type="file" id="avatar-input" accept="image/*" style="display:none">
+          <input type="file" id="cover-input" accept="image/*" style="display:none">
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="form-group"><label class="form-label">Display Name</label><input type="text" id="edit-displayname" class="input"></div>
+        <div class="form-group"><label class="form-label">Bio</label><textarea id="edit-bio" class="input" rows="3" maxlength="200"></textarea></div>
+        <div class="form-group"><label class="form-label">Website</label><input type="text" id="edit-website" class="input" placeholder="https://..."></div>
+        <div class="form-group"><label class="form-label">Location</label><input type="text" id="edit-location" class="input" placeholder="City, Country"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="save-profile-btn" onclick="saveProfile()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Followers/Following Modal -->
+<div class="modal-overlay hidden" id="users-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 style="font-family:var(--font-display);font-size:1.1rem;font-style:italic;" id="users-modal-title">Followers</h3>
+      <button onclick="closeUsersModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding:8px 0 16px;" id="users-modal-list"></div>
+  </div>
+</div>
+
+<!-- Post Modal -->
+<div class="modal-overlay hidden" id="post-modal-overlay" onclick="closePostModal(event)">
+  <div class="modal" id="post-modal-content" style="max-width:680px;max-height:90vh;overflow-y:auto;"></div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/api.js"></script>
+<script>
+  requireAuth();
+  const currentUser = api.getUser();
+  const urlParams = new URLSearchParams(window.location.search);
+  const profileUsername = urlParams.get('user');
+  let profileData = null;
+  let profilePage = 1, profileHasMore = true;
+
+  // Realtime polling variables for chat
+  let pollIntervalId = null;
+  let currentChatPartnerId = null;
+  let chatIsOpen = false;
+
+  if (!profileUsername) window.location.href = '/';
+
+  function initSidebar() {
+    document.getElementById('sidebar-display-name').textContent = currentUser.displayName || currentUser.username;
+    document.getElementById('sidebar-handle').textContent = '@' + currentUser.username;
+    document.getElementById('sidebar-avatar').innerHTML = getAvatarHTML(currentUser, 'avatar-sm');
+    document.getElementById('sidebar-user-link').href = '/pages/profile.html?user=' + currentUser.username;
+    document.getElementById('nav-profile-link').href = '/pages/profile.html?user=' + currentUser.username;
+  }
+
+  async function loadProfile() {
+    try {
+      const { user } = await api.getProfile(profileUsername);
+      profileData = user;
+      document.getElementById('page-title').textContent = user.displayName || user.username;
+      renderProfile(user);
+      loadUserPosts(true);
+    } catch (err) {
+      document.getElementById('profile-container').innerHTML = `<div class="empty-state"><p>User not found.</p></div>`;
+    }
+  }
+
+  function renderProfile(user) {
+    const container = document.getElementById('profile-container');
+    container.innerHTML = `
+      <div class="profile-cover">
+        ${user.coverPhoto ? `<img src="${user.coverPhoto}" alt="cover">` : ''}
+        <div class="profile-cover-overlay"></div>
+      </div>
+      <div class="profile-info-section">
+        <div class="profile-avatar-row">
+          ${getAvatarHTML(user, 'avatar-xxl')}
+          <div class="profile-actions-row">
+            ${user.isOwnProfile
+              ? `<button class="btn btn-ghost btn-sm" onclick="openEditModal()">Edit Profile</button>`
+              : `<button class="btn ${user.isFollowing ? 'btn-ghost' : 'btn-primary'} btn-sm" id="follow-btn" onclick="toggleFollow()" style="margin-right:8px">
+                   ${user.isFollowing ? 'Following' : 'Follow'}
+                 </button>
+                 <button class="btn btn-primary btn-sm" onclick="triggerWhisper('${user._id}', '${user.displayName || user.username}', '${user.username}', '${user.avatar || ''}')">
+                   Whisper ✉️
+                 </button>`
+            }
+          </div>
+        </div>
+        <div class="profile-display-name">
+          ${user.displayName || user.username}
+          ${user.isVerified ? '<svg style="color:var(--celestial-gold)" width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' : ''}
+        </div>
+        <div class="profile-username">@${user.username}</div>
+        ${user.bio ? `<div class="profile-bio">${escHtml(user.bio)}</div>` : ''}
+        <div class="profile-meta">
+          ${user.location ? `<span class="profile-meta-item"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${escHtml(user.location)}</span>` : ''}
+          ${user.website ? `<span class="profile-meta-item"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg><a href="${user.website}" target="_blank">${user.website}</a></span>` : ''}
+          <span class="profile-meta-item"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Joined ${new Date(user.createdAt).toLocaleDateString('en-US',{month:'long',year:'numeric'})}</span>
+        </div>
+        <div class="profile-stats">
+          <div class="profile-stat" onclick="showUsersList('following')">
+            <span class="stat-number">${formatCount(user.following?.length||0)}</span>
+            <span class="stat-label">Following</span>
+          </div>
+          <div class="profile-stat" onclick="showUsersList('followers')">
+            <span class="stat-number">${formatCount(user.followers?.length||0)}</span>
+            <span class="stat-label">Followers</span>
+          </div>
+          <div class="profile-stat">
+            <span class="stat-number" id="post-count-stat">${formatCount(user.postCount||0)}</span>
+            <span class="stat-label">Posts</span>
+          </div>
+        </div>
+      </div>
+      <div class="profile-tabs">
+        <div class="profile-tab active" onclick="switchProfileTab('posts', this)">Posts</div>
+        ${user.isOwnProfile ? `<div class="profile-tab" onclick="switchProfileTab('saved', this)">Saved</div>` : ''}
+      </div>
+      <div id="profile-posts-grid"></div>
+      <div id="profile-load-more" style="display:none;padding:12px 24px;">
+        <button class="load-more-btn" style="margin:0;width:100%;" onclick="loadUserPosts(false)">Load more</button>
+      </div>
+    `;
+  }
+
+  async function loadUserPosts(reset = true) {
+    if (reset) { profilePage = 1; profileHasMore = true; }
+    const grid = document.getElementById('profile-posts-grid');
+    if (!grid) return;
+    if (reset) grid.innerHTML = '<div class="spinner" style="margin:30px auto;"></div>';
+
+    try {
+      const { posts, pagination } = await api.getUserPosts(profileUsername, profilePage);
+      if (reset) grid.innerHTML = '';
+      if (!posts.length && reset) {
+        grid.innerHTML = `<div class="empty-state"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><p>No posts yet.</p></div>`;
+        return;
+      }
+      if (posts.some(p => p.image)) {
+        if (reset) grid.innerHTML = '<div class="posts-grid" id="posts-grid-inner"></div>';
+        const inner = document.getElementById('posts-grid-inner') || grid;
+        posts.forEach(p => {
+          inner.insertAdjacentHTML('beforeend', `
+            <div class="grid-post" onclick="openPostModal('${p._id}')">
+              ${p.image ? `<img src="${p.image}" alt="post" loading="lazy">` : `<div class="grid-post-text">${escHtml(p.content.substring(0,80))}</div>`}
+              <div class="grid-post-overlay">
+                <div class="grid-post-stat"><svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>${p.likes.length}</div>
+                <div class="grid-post-stat"><svg width="16" height="16" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>${(p.comments||[]).length}</div>
+              </div>
+            </div>`);
+        });
+      } else {
+        posts.forEach(p => {
+          grid.insertAdjacentHTML('beforeend', `
+            <div class="post-card" onclick="openPostModal('${p._id}')" style="cursor:pointer">
+              ${p.content ? `<div class="post-content">${escHtml(p.content)}</div>` : ''}
+              ${p.tags?.length ? `<div class="post-tags">${p.tags.map(t=>`<span class="post-tag">#${t}</span>`).join('')}</div>` : ''}
+              <div style="display:flex;gap:16px;font-size:0.8rem;color:var(--text-muted);font-family:var(--font-ui);margin-top:8px;">
+                <span>♥ ${p.likes.length}</span><span>· ${timeAgo(p.createdAt)}</span>
+              </div>
+            </div>`);
+        });
+      }
+      profileHasMore = profilePage < pagination.pages;
+      document.getElementById('profile-load-more').style.display = profileHasMore ? 'block' : 'none';
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  function switchProfileTab(tab, el) {
+    document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    if (tab === 'posts') loadUserPosts(true);
+    else if (tab === 'saved') loadSavedPosts();
+  }
+
+  async function loadSavedPosts() {
+    const grid = document.getElementById('profile-posts-grid');
+    grid.innerHTML = '<div class="spinner" style="margin:30px auto;"></div>';
+    try {
+      const me = await api.getMe();
+      const savedIds = me.user.savedPosts || [];
+      if (!savedIds.length) { grid.innerHTML = `<div class="empty-state"><p>No saved posts yet.</p></div>`; return; }
+      const posts = await Promise.all(savedIds.slice(0,12).map(id => api.getPost(id).then(r=>r.post).catch(()=>null)));
+      const valid = posts.filter(Boolean);
+      grid.innerHTML = '';
+      if (!valid.length) { grid.innerHTML = `<div class="empty-state"><p>No saved posts.</p></div>`; return; }
+      grid.innerHTML = '<div class="posts-grid" id="posts-grid-inner"></div>';
+      const inner = document.getElementById('posts-grid-inner');
+      valid.forEach(p => {
+        inner.insertAdjacentHTML('beforeend', `
+          <div class="grid-post" onclick="openPostModal('${p._id}')">
+            ${p.image ? `<img src="${p.image}" loading="lazy">` : `<div class="grid-post-text">${escHtml(p.content.substring(0,80))}</div>`}
+            <div class="grid-post-overlay">
+              <div class="grid-post-stat"><svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>${p.likes.length}</div>
+            </div>
+          </div>`);
+      });
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  async function toggleFollow() {
+    if (!profileData) return;
+    const btn = document.getElementById('follow-btn');
+    try {
+      const { isFollowing } = await api.followUser(profileData._id || profileData.id);
+      profileData.isFollowing = isFollowing;
+      btn.textContent = isFollowing ? 'Following' : 'Follow';
+      btn.className = `btn ${isFollowing ? 'btn-ghost' : 'btn-primary'} btn-sm`;
+      showToast(isFollowing ? 'Following!' : 'Unfollowed.', 'success');
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  async function showUsersList(type) {
+    const modal = document.getElementById('users-modal');
+    const title = document.getElementById('users-modal-title');
+    const list = document.getElementById('users-modal-list');
+    title.textContent = type === 'followers' ? 'Followers' : 'Following';
+    list.innerHTML = '<div class="spinner" style="margin:20px auto;width:24px;height:24px;border-width:2px;"></div>';
+    modal.classList.remove('hidden');
+    try {
+      const data = type === 'followers' ? await api.getFollowers(profileUsername) : await api.getFollowing(profileUsername);
+      const users = data.followers || data.following || [];
+      if (!users.length) { list.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);font-family:var(--font-ui);">No ${type} yet.</div>`; return; }
+      list.innerHTML = users.map(u => `
+        <a class="user-list-item" href="/pages/profile.html?user=${u.username}">
+          ${getAvatarHTML(u, 'avatar-md')}
+          <div class="user-list-info">
+            <div class="user-list-name">${u.displayName||u.username}</div>
+            <div class="user-list-handle">@${u.username}</div>
+            ${u.bio ? `<div class="user-list-bio">${escHtml(u.bio)}</div>` : ''}
+          </div>
+        </a>`).join('');
+    } catch (err) { list.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);">Failed to load.</div>`; }
+  }
+
+  function closeUsersModal() { document.getElementById('users-modal').classList.add('hidden'); }
+
+  function openEditModal() {
+    if (!profileData) return;
+    document.getElementById('edit-displayname').value = profileData.displayName || '';
+    document.getElementById('edit-bio').value = profileData.bio || '';
+    document.getElementById('edit-website').value = profileData.website || '';
+    document.getElementById('edit-location').value = profileData.location || '';
+    document.getElementById('edit-avatar-preview').innerHTML = getAvatarHTML(profileData, 'avatar-lg');
+    document.getElementById('edit-modal').classList.remove('hidden');
+  }
+
+  function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+
+  async function saveProfile() {
+    const btn = document.getElementById('save-profile-btn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    try {
+      const fd = new FormData();
+      fd.append('displayName', document.getElementById('edit-displayname').value.trim());
+      fd.append('bio', document.getElementById('edit-bio').value.trim());
+      fd.append('website', document.getElementById('edit-website').value.trim());
+      fd.append('location', document.getElementById('edit-location').value.trim());
+      const avatarFile = document.getElementById('avatar-input').files[0];
+      const coverFile = document.getElementById('cover-input').files[0];
+      if (avatarFile) fd.append('avatar', avatarFile);
+      if (coverFile) fd.append('coverPhoto', coverFile);
+      const { user } = await api.updateProfile(fd);
+      api.setUser({ ...currentUser, ...user });
+      closeEditModal();
+      showToast('Profile updated! ✨', 'success');
+      loadProfile();
+    } catch (err) { showToast(err.message, 'error'); }
+    finally { btn.disabled = false; btn.textContent = 'Save Changes'; }
+  }
+
+  async function openPostModal(postId) {
+    const overlay = document.getElementById('post-modal-overlay');
+    const content = document.getElementById('post-modal-content');
+    overlay.classList.remove('hidden');
+    content.innerHTML = '<div class="spinner" style="margin:40px auto;"></div>';
+    try {
+      const { post } = await api.getPost(postId);
+      const uid = currentUser._id || currentUser.id;
+      const isLiked = post.likes.includes(uid);
+      content.innerHTML = `
+        <div style="padding:24px">
+          <div class="post-header" style="margin-bottom:16px">
+            <div class="post-author">
+              ${getAvatarHTML(post.author,'avatar-md')}
+              <div>
+                <div class="post-author-name">${post.author.displayName}</div>
+                <div class="post-handle-time">@${post.author.username} · ${timeAgo(post.createdAt)}</div>
+              </div>
+            </div>
+            <button onclick="closePostModalDirect()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          ${post.content ? `<div class="post-content">${escHtml(post.content)}</div>` : ''}
+          ${post.image ? `<img src="${post.image}" class="post-image">` : ''}
+          <div class="post-actions" style="margin:16px 0;border-top:1px solid var(--border-gold);padding-top:12px">
+            <button class="post-action-btn ${isLiked?'liked':''}" onclick="toggleLike('${post._id}',this)">
+              <svg width="16" height="16" fill="${isLiked?'currentColor':'none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+              <span class="lc-${post._id}">${formatCount(post.likes.length)}</span>
+            </button>
+          </div>
+          <hr class="divider" style="margin:4px 0 16px">
+          <div id="modal-comments-${post._id}">${renderComments(post.comments||[], post._id)}</div>
+          <div class="add-comment" style="margin-top:12px">
+            ${getAvatarHTML(currentUser,'avatar-xs')}
+            <input class="add-comment-input" id="ci-${post._id}" placeholder="Add a comment..." onkeydown="if(event.key==='Enter')submitComment('${post._id}')">
+            <button class="add-comment-btn" onclick="submitComment('${post._id}')">Post</button>
+          </div>
+        </div>`;
+    } catch { content.innerHTML = `<div class="empty-state"><p>Failed to load post.</p></div>`; }
+  }
+
+  function renderComments(comments, postId) {
+    if (!comments.length) return `<div style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:16px 0;">No comments yet.</div>`;
+    const uid = currentUser._id || currentUser.id;
+    return comments.map(c => `
+      <div class="comment-item">
+        ${getAvatarHTML(c.author,'avatar-xs')}
+        <div class="comment-body">
+          <span class="comment-author-name">${c.author.displayName}</span>
+          <div class="comment-text">${escHtml(c.content)}</div>
+          <div class="comment-meta">
+            <span>${timeAgo(c.createdAt)}</span>
+            <button class="comment-meta-btn ${c.likes.includes(uid)?'liked':''}" onclick="likeComment('${c._id}',this)">♥ ${c.likes.length||''}</button>
+            ${(c.author._id||c.author.id)===uid ? `<button class="comment-meta-btn" onclick="deleteComment('${c._id}','${postId}',this)">Delete</button>` : ''}
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  async function submitComment(postId) {
+    const input = document.getElementById('ci-' + postId);
+    const content = input.value.trim();
+    if (!content) return;
+    input.value = '';
+    try {
+      const { comment } = await api.addComment(postId, content);
+      const box = document.getElementById('modal-comments-' + postId);
+      if (box) box.insertAdjacentHTML('beforeend', renderComments([comment], postId));
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  async function toggleLike(postId, btn) {
+    try {
+      const data = await api.likePost(postId);
+      btn.classList.toggle('liked', data.liked);
+      btn.querySelector('svg').setAttribute('fill', data.liked ? 'currentColor' : 'none');
+      document.querySelectorAll(`.lc-${postId}`).forEach(el => el.textContent = formatCount(data.likeCount));
+    } catch {}
+  }
+
+  async function likeComment(id, btn) {
+    try { const data = await api.likeComment(id); btn.classList.toggle('liked', data.liked); btn.textContent = `♥ ${data.likeCount||''}`; } catch {}
+  }
+
+  async function deleteComment(id, postId, btn) {
+    try { await api.deleteComment(id); btn.closest('.comment-item').remove(); showToast('Deleted.', 'success'); } catch {}
+  }
+
+  function closePostModal(e) { if (e.target.id === 'post-modal-overlay') closePostModalDirect(); }
+  function closePostModalDirect() { document.getElementById('post-modal-overlay').classList.add('hidden'); }
+
+  async function loadSuggestions() {
+    try {
+      const { suggestions } = await api.getSuggestions();
+      const list = document.getElementById('suggestions-list');
+      if (!suggestions.length) { list.innerHTML = '<div style="padding:12px 18px;color:var(--text-muted);font-size:0.82rem;">No suggestions.</div>'; return; }
+      list.innerHTML = suggestions.map(u => `
+        <div class="suggestion-item">
+          <a href="/pages/profile.html?user=${u.username}">${getAvatarHTML(u,'avatar-sm')}</a>
+          <div class="suggestion-info">
+            <div class="suggestion-name" onclick="window.location='/pages/profile.html?user=${u.username}'">${u.displayName||u.username}</div>
+            <div class="suggestion-handle">@${u.username}</div>
+          </div>
+          <button class="follow-btn-sm" onclick="quickFollow('${u._id}',this)">Follow</button>
+        </div>`).join('');
+    } catch {}
+  }
+
+  async function quickFollow(id, btn) {
+    try { const { isFollowing } = await api.followUser(id); btn.textContent = isFollowing ? 'Following' : 'Follow'; btn.classList.toggle('following', isFollowing); } catch {}
+  }
+
+  let searchTimer;
+  function debounceSearch(q) {
+    clearTimeout(searchTimer);
+    const results = document.getElementById('search-results');
+    if (!q.trim()) { results.style.display = 'none'; return; }
+    searchTimer = setTimeout(async () => {
+      try {
+        const { users } = await api.searchUsers(q);
+        if (!users.length) { results.style.display = 'none'; return; }
+        results.innerHTML = users.map(u => `<a class="search-result-item" href="/pages/profile.html?user=${u.username}">${getAvatarHTML(u,'avatar-xs')}<div><div style="font-family:var(--font-ui);font-size:0.85rem;font-weight:600">${u.displayName}</div><div style="font-size:0.75rem;color:var(--text-muted)">@${u.username}</div></div></a>`).join('');
+        results.style.display = 'block';
+      } catch {}
+    }, 350);
+  }
+
+  async function handleLogout(e) {
+    e.preventDefault(); e.stopPropagation();
+    try { await api.logout(api.getRefreshToken()); } finally { api.clearTokens(); window.location.href = '/pages/auth.html'; }
+  }
+
+  // ── TRIGGER DIRECT MESSAGING WHISPER FROM PROFILE PAGE ──
+  function triggerWhisper(userId, displayName, username, avatar) {
+    const drawer = document.getElementById('chat-drawer');
+    if (!drawer.classList.contains('open')) {
+      drawer.classList.add('open');
+      chatIsOpen = true;
+    }
+    openConversation(userId, displayName, '@' + username, avatar);
+  }
+
+  // ── CLIENT CHAT DRAWER CONTROLLER ──
+  function toggleChatDrawer(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    const drawer = document.getElementById('chat-drawer');
+    const isShowing = drawer.classList.toggle('open');
+    chatIsOpen = isShowing;
+
+    if (isShowing) {
+      showChatListScreen();
+      loadChatConversations();
+    } else {
+      if (pollIntervalId) {
+        clearInterval(pollIntervalId);
+        pollIntervalId = null;
+      }
+      currentChatPartnerId = null;
+    }
+  }
+
+  function showChatListScreen() {
+    document.getElementById('chat-screen-conversation').classList.remove('slide-in');
+    document.getElementById('chat-screen-list').classList.remove('slide-out');
+    if (pollIntervalId) {
+      clearInterval(pollIntervalId);
+      pollIntervalId = null;
+    }
+    currentChatPartnerId = null;
+    loadChatConversations();
+  }
+
+  async function pollUnreadCounts() {
+    if (!api.isLoggedIn()) return;
+    try {
+      const { conversations } = await api.getConversations();
+      let totalUnread = 0;
+      conversations.forEach(c => {
+        totalUnread += (c.unreadCount || 0);
+      });
+      const badge = document.getElementById('nav-chat-badge');
+      if (totalUnread > 0) {
+        badge.textContent = totalUnread;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    } catch {}
+  }
+
+  async function loadChatConversations() {
+    const listContainer = document.getElementById('chat-contacts-list');
+    listContainer.innerHTML = '<div class="spinner"></div>';
+    try {
+      const { conversations } = await api.getConversations();
+      if (!conversations.length) {
+        listContainer.innerHTML = `
+          <div class="empty-state" style="padding: 40px 10px;">
+            <div class="empty-icon" style="font-size: 1.5rem;">🌌</div>
+            <p style="font-size: 0.85rem;">No whispers shared yet.<br>Visit profiles to start private chats.</p>
+          </div>`;
+        return;
+      }
+      listContainer.innerHTML = conversations.map(c => {
+        const contact = c.contact;
+        const lastMsg = c.lastMessage;
+        const isUnread = c.unreadCount > 0;
+        const statusTime = timeAgo(lastMsg.createdAt);
+        return `
+          <div class="chat-contact-item" onclick="openConversation('${contact._id}', '${contact.displayName || contact.username}', '@${contact.username}', '${contact.avatar || ''}')">
+            ${getAvatarHTML(contact, 'avatar-md')}
+            <div class="chat-contact-info">
+              <div class="chat-contact-header">
+                <span class="chat-contact-name">${contact.displayName || contact.username}</span>
+                <span class="chat-contact-time">${statusTime}</span>
+              </div>
+              <div class="chat-contact-preview">
+                <span style="${isUnread ? 'font-weight: 600; color: var(--text-primary);' : ''}">${escHtml(lastMsg.content)}</span>
+                ${isUnread ? `<span class="chat-contact-unread">${c.unreadCount}</span>` : ''}
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    } catch {
+      listContainer.innerHTML = '<div class="empty-state"><p>Connection error.</p></div>';
+    }
+  }
+
+  async function openConversation(partnerId, name, handle, avatar) {
+    currentChatPartnerId = partnerId;
+    document.getElementById('chat-convo-name').textContent = name;
+    document.getElementById('chat-convo-handle').textContent = handle;
+    const avatarBox = document.getElementById('chat-convo-avatar');
+    if (avatar) {
+      avatarBox.innerHTML = `<img src="${avatar}" class="avatar avatar-sm">`;
+    } else {
+      avatarBox.innerHTML = `<div class="avatar avatar-placeholder avatar-sm" style="font-size: 0.8rem;">${name.charAt(0).toUpperCase()}</div>`;
+    }
+
+    document.getElementById('chat-screen-list').classList.add('slide-out');
+    document.getElementById('chat-screen-conversation').classList.add('slide-in');
+    
+    const msgContainer = document.getElementById('chat-messages-container');
+    msgContainer.innerHTML = '<div class="spinner"></div>';
+    
+    await refreshMessages(true);
+    
+    try {
+      await api.markChatRead(partnerId);
+      pollUnreadCounts();
+    } catch {}
+
+    if (pollIntervalId) clearInterval(pollIntervalId);
+    pollIntervalId = setInterval(() => refreshMessages(false), 3000);
+  }
+
+  async function refreshMessages(shouldScroll = false) {
+    if (!currentChatPartnerId) return;
+    try {
+      const { messages } = await api.getChatHistory(currentChatPartnerId);
+      const container = document.getElementById('chat-messages-container');
+      const html = messages.map(m => {
+        const isSent = m.sender._id.toString() === currentUser._id.toString() || m.sender.toString() === currentUser._id.toString();
+        const timeStr = new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `
+          <div class="chat-msg-row ${isSent ? 'sent' : 'received'}">
+            <div class="chat-msg-bubble">
+              <div>${escHtml(m.content)}</div>
+              <div class="chat-msg-meta">${timeStr}</div>
+            </div>
+          </div>`;
+      }).join('');
+
+      if (container.innerHTML !== html) {
+        container.innerHTML = html;
+        if (shouldScroll) container.scrollTop = container.scrollHeight;
+      }
+    } catch {}
+  }
+
+  async function sendChatMessage() {
+    const input = document.getElementById('chat-message-input');
+    const content = input.value.trim();
+    if (!content || !currentChatPartnerId) return;
+    input.value = '';
+    try {
+      const data = await api.sendMessage(currentChatPartnerId, content);
+      const container = document.getElementById('chat-messages-container');
+      const timeStr = new Date(data.message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      container.insertAdjacentHTML('beforeend', `
+        <div class="chat-msg-row sent">
+          <div class="chat-msg-bubble">
+            <div>${escHtml(data.message.content)}</div>
+            <div class="chat-msg-meta">${timeStr}</div>
+          </div>
+        </div>`);
+      container.scrollTop = container.scrollHeight;
+    } catch {
+      showToast('Could not whisper message.', 'error');
+    }
+  }
+
+  function escHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+  initSidebar();
+  loadProfile();
+  loadSuggestions();
+  
+  // Start global chat unread polling
+  pollUnreadCounts();
+  setInterval(pollUnreadCounts, 7000);
+</script>
+</body>
+</html>

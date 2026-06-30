@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bloom — Explore</title>
+  <link rel="stylesheet" href="../assets/css/global.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <style>
+    .explore-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 6px; }
+    .explore-post { aspect-ratio: 1; overflow: hidden; position: relative; cursor: pointer; background: var(--bg-warm); border: 4px solid var(--dark-chocolate); border-radius: 0px; }
+    .explore-post img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s var(--ease); }
+    .explore-post:hover img { transform: scale(1.04); }
+    .explore-post-text { display: flex; align-items: center; justify-content: center; padding: 12px; font-family: var(--font-body); font-size: 1.1rem; color: var(--text-secondary); text-align: center; height: 100%; }
+    .explore-overlay { position: absolute; inset: 0; background: rgba(74, 48, 55, 0.6); display: flex; align-items: center; justify-content: center; gap: 16px; opacity: 0; transition: opacity var(--duration); }
+    .explore-post:hover .explore-overlay { opacity: 1; }
+    .explore-stat { display: flex; align-items: center; gap: 5px; color: white; font-family: var(--font-display); font-size: 8px; }
+    .tag-filter-banner {
+      padding: 14px 24px; background: var(--bg-cream); border: 4px solid var(--dark-chocolate);
+      display: flex; align-items: center; justify-content: space-between;
+      font-family: var(--font-display); font-size: 9px; color: var(--text-primary);
+    }
+    .tag-filter-clear {
+      font-family: var(--font-display); font-size: 8px; color: #ffffff;
+      background: var(--dark-chocolate); padding: 5px 14px; border-radius: 0px;
+      border: 3px solid var(--dark-chocolate); cursor: pointer; font-style: normal;
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.15);
+    }
+    .tag-filter-clear:hover { background: #ff5c7c; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span class="sidebar-logo-icon">🌸</span> Bloom</div>
+    <div class="sidebar-tagline">pixel cherry blossom garden</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="/"><span class="nav-emoji">🏡</span> Home</a>
+      <a class="nav-item active" href="/pages/explore.html"><span class="nav-emoji">🔭</span> Explore</a>
+      <a class="nav-item" href="#" id="nav-chat-link" onclick="toggleChatDrawer(event)">
+        <span class="nav-emoji">✉️</span> Messages <span class="nav-badge hidden" id="nav-chat-badge">0</span>
+      </a>
+      <a class="nav-item" href="#" id="nav-profile-link"><span class="nav-emoji">🌷</span> Profile</a>
+      <a class="nav-item" href="/pages/saved.html"><span class="nav-emoji">⚜️</span> Saved</a>
+    </nav>
+    <div class="sidebar-decor">🌸 ✵ 🍄 ✵ 🌸</div>
+    <a class="sidebar-user" id="sidebar-user-link" href="#">
+      <div id="sidebar-avatar"></div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-username" id="sidebar-display-name">—</div>
+        <div class="sidebar-handle" id="sidebar-handle">—</div>
+      </div>
+      <button class="sidebar-logout" onclick="handleLogout(event)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </a>
+  </aside>
+
+  <!-- MAIN EXPLORE FEED -->
+
+  <main class="main-feed">
+    <div class="feed-header">
+      <div class="feed-header-inner"><h2 class="feed-title">Explore</h2></div>
+      <div style="padding:12px 24px;border-bottom:1px solid rgba(127, 88, 54, 0.15);">
+        <div class="search-bar" style="margin:0">
+          <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" id="search-input" placeholder="Search posts, goddesses..." oninput="debounceSearch(this.value)" autocomplete="off">
+          <div class="search-results" id="search-results"></div>
+        </div>
+      </div>
+    </div>
+    <div id="tag-filter-banner-wrap"></div>
+    <div id="explore-container"><div class="spinner"></div></div>
+    <div id="load-more-wrap" style="display:none">
+      <button class="load-more-btn" onclick="loadMore()">Load more</button>
+    </div>
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <aside class="right-panel">
+    <div class="panel-widget">
+      <div class="panel-widget-header">⚜️ Celestial Vibes</div>
+      <div class="trend-item" onclick="searchByTag('goddess')"><div class="trend-label">Trending</div><div class="trend-tag">#goddess</div><div class="trend-count">posts</div></div>
+      <div class="trend-item" onclick="searchByTag('oldmoney')"><div class="trend-label">Trending</div><div class="trend-tag">#oldmoney</div><div class="trend-count">posts</div></div>
+      <div class="trend-item" onclick="searchByTag('celestial')"><div class="trend-label">Trending</div><div class="trend-tag">#celestial</div><div class="trend-count">posts</div></div>
+      <div class="trend-item" onclick="searchByTag('aesthetic')"><div class="trend-label">Style</div><div class="trend-tag">#aesthetic</div><div class="trend-count">posts</div></div>
+      <div class="trend-item" onclick="searchByTag('milktea')"><div class="trend-label">Vibe</div><div class="trend-tag">#milktea</div><div class="trend-count">posts</div></div>
+    </div>
+    <div class="panel-widget" id="suggestions-widget">
+      <div class="panel-widget-header">👑 Goddesses to Follow</div>
+      <div id="suggestions-list"><div class="spinner" style="width:24px;height:24px;border-width:2px;margin:16px auto;"></div></div>
+    </div>
+  </aside>
+</div>
+
+<!-- CLIENT CHAT DRAWER -->
+<div class="chat-drawer" id="chat-drawer">
+  <div class="chat-drawer-header">
+    <div class="chat-drawer-title">⚜️ Conversations</div>
+    <div class="chat-drawer-close" onclick="toggleChatDrawer(event)">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+  </div>
+  <div class="chat-drawer-body">
+    <div class="chat-screen-list" id="chat-screen-list">
+      <div class="chat-contacts" id="chat-contacts-list">
+        <div class="spinner"></div>
+      </div>
+    </div>
+    <div class="chat-screen-conversation" id="chat-screen-conversation">
+      <div class="chat-convo-header">
+        <div class="chat-convo-back" onclick="showChatListScreen()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div id="chat-convo-avatar"></div>
+        <div class="chat-convo-user">
+          <div class="chat-convo-name" id="chat-convo-name">—</div>
+          <div class="chat-convo-handle" id="chat-convo-handle">—</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages-container"></div>
+      <div class="chat-convo-input-area">
+        <input type="text" class="chat-input" id="chat-message-input" placeholder="Whisper something celestial...">
+        <button class="chat-send-btn" onclick="sendChatMessage()" title="Send">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Post Modal -->
+<div class="modal-overlay hidden" id="post-modal-overlay" onclick="closePostModal(event)">
+  <div class="modal" id="post-modal-content" style="max-width:680px;max-height:90vh;overflow-y:auto;"></div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/api.js"></script>
+<script>
+  requireAuth();
+  const currentUser = api.getUser();
+  let page = 1, hasMore = true, isLoading = false;
+  const tagFilter = new URLSearchParams(window.location.search).get('tag');
+
+  // Realtime polling variables for chat
+  let pollIntervalId = null;
+  let currentChatPartnerId = null;
+  let chatIsOpen = false;
+
+  function init() {
+    document.getElementById('sidebar-display-name').textContent = currentUser.displayName || currentUser.username;
+    document.getElementById('sidebar-handle').textContent = '@' + currentUser.username;
+    document.getElementById('sidebar-avatar').innerHTML = getAvatarHTML(currentUser, 'avatar-sm');
+    document.getElementById('sidebar-user-link').href = '/pages/profile.html?user=' + currentUser.username;
+    document.getElementById('nav-profile-link').href = '/pages/profile.html?user=' + currentUser.username;
+
+    if (tagFilter) {
+      document.getElementById('tag-filter-banner-wrap').innerHTML = `
+        <div class="tag-filter-banner">
+          <span>Showing posts tagged #${tagFilter}</span>
+          <button class="tag-filter-clear" onclick="window.location.href='/pages/explore.html'">Clear filter</button>
+        </div>`;
+    }
+
+    loadPosts(true);
+    loadSuggestions();
+    
+    // Start global chat unread polling
+    pollUnreadCounts();
+    setInterval(pollUnreadCounts, 7000);
+  }
+
+  function searchByTag(tag) {
+    window.location.href = `/pages/explore.html?tag=${encodeURIComponent(tag)}`;
+  }
+
+  async function loadPosts(reset = true) {
+    if (isLoading) return;
+    if (reset) { page = 1; hasMore = true; document.getElementById('explore-container').innerHTML = '<div class="spinner"></div>'; document.getElementById('load-more-wrap').style.display = 'none'; }
+    isLoading = true;
+    try {
+      let { posts, pagination } = await api.getExplorePosts(page);
+      if (tagFilter) posts = posts.filter(p => p.tags?.includes(tagFilter));
+
+      const container = document.getElementById('explore-container');
+      if (reset) container.innerHTML = '';
+      if (!posts.length && reset) {
+        const msg = tagFilter ? `No posts found for #${tagFilter} yet.` : 'Nothing here yet.';
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">⚜️</div><p>${msg}</p></div>`;
+        return;
+      }
+      if (reset) container.innerHTML = '<div class="explore-grid" id="explore-grid"></div>';
+      const grid = document.getElementById('explore-grid');
+      posts.forEach(p => {
+        grid.insertAdjacentHTML('beforeend', `
+          <div class="explore-post" onclick="openPostModal('${p._id}')">
+            ${p.image ? `<img src="${p.image}" loading="lazy" alt="">` : `<div class="explore-post-text">${escHtml(p.content.substring(0,100))}</div>`}
+            <div class="explore-overlay">
+              <div class="explore-stat"><svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>${p.likes.length}</div>
+              <div class="explore-stat"><svg width="16" height="16" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>${(p.comments||[]).length}</div>
+            </div>
+          </div>`);
+      });
+      hasMore = !tagFilter && page < pagination.pages;
+      document.getElementById('load-more-wrap').style.display = hasMore ? 'block' : 'none';
+    } catch (err) { showToast(err.message, 'error'); }
+    finally { isLoading = false; }
+  }
+
+  async function loadMore() { if (!hasMore || isLoading) return; page++; await loadPosts(false); }
+
+  async function openPostModal(postId) {
+    const overlay = document.getElementById('post-modal-overlay');
+    const content = document.getElementById('post-modal-content');
+    overlay.classList.remove('hidden');
+    content.innerHTML = '<div class="spinner" style="margin:40px auto;"></div>';
+    try {
+      const { post } = await api.getPost(postId);
+      const uid = currentUser._id || currentUser.id;
+      const isLiked = post.likes.includes(uid);
+      content.innerHTML = `
+        <div style="padding:24px">
+          <div class="post-header" style="margin-bottom:16px">
+            <div class="post-author">
+              <a href="/pages/profile.html?user=${post.author.username}">${getAvatarHTML(post.author,'avatar-md')}</a>
+              <div>
+                <div class="post-author-name" onclick="window.location='/pages/profile.html?user=${post.author.username}'">${post.author.displayName}</div>
+                <div class="post-handle-time">@${post.author.username} · ${timeAgo(post.createdAt)}</div>
+              </div>
+            </div>
+            <button onclick="closePostModalDirect()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          ${post.content ? `<div class="post-content">${escHtml(post.content)}</div>` : ''}
+          ${post.image ? `<img src="${post.image}" class="post-image">` : ''}
+          ${post.tags?.length ? `<div class="post-tags">${post.tags.map(t=>`<span class="post-tag" onclick="searchByTag('${t}')">#${t}</span>`).join('')}</div>` : ''}
+          <div class="post-actions" style="margin:16px 0;border-top:1px solid var(--border-gold);padding-top:12px">
+            <button class="post-action-btn ${isLiked?'liked':''}" onclick="toggleLike('${post._id}',this)">
+              <svg width="16" height="16" fill="${isLiked?'currentColor':'none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+              <span class="lc-${post._id}">${formatCount(post.likes.length)}</span>
+            </button>
+            <button class="post-action-btn" onclick="toggleSave('${post._id}',this)">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Save
+            </button>
+          </div>
+          <hr class="divider" style="margin:4px 0 16px">
+          <div id="modal-comments-${post._id}">${renderComments(post.comments||[], post._id)}</div>
+          <div class="add-comment" style="margin-top:12px">
+            ${getAvatarHTML(currentUser,'avatar-xs')}
+            <input class="add-comment-input" id="ci-${post._id}" placeholder="Add a comment..." onkeydown="if(event.key==='Enter')submitComment('${post._id}')">
+            <button class="add-comment-btn" onclick="submitComment('${post._id}')">Post</button>
+          </div>
+        </div>`;
+    } catch { content.innerHTML = `<div class="empty-state"><p>Failed to load post.</p></div>`; }
+  }
+
+  function renderComments(comments, postId) {
+    if (!comments.length) return `<div style="color:var(--text-muted);font-size:0.9rem;text-align:center;padding:16px 0;font-family:var(--font-body);font-style:italic;">No comments yet ⚜️</div>`;
+    const uid = currentUser._id || currentUser.id;
+    return comments.map(c => `
+      <div class="comment-item">
+        ${getAvatarHTML(c.author,'avatar-xs')}
+        <div class="comment-body">
+          <span class="comment-author-name">${c.author.displayName}</span>
+          <div class="comment-text">${escHtml(c.content)}</div>
+          <div class="comment-meta">
+            <span>${timeAgo(c.createdAt)}</span>
+            <button class="comment-meta-btn" onclick="likeComment('${c._id}',this)">♡ ${c.likes.length||''}</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  async function submitComment(postId) {
+    const input = document.getElementById('ci-' + postId);
+    const content = input.value.trim();
+    if (!content) return;
+    input.value = '';
+    try {
+      const { comment } = await api.addComment(postId, content);
+      const box = document.getElementById('modal-comments-' + postId);
+      if (box) box.insertAdjacentHTML('beforeend', renderComments([comment], postId));
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  async function toggleLike(postId, btn) {
+    try {
+      const data = await api.likePost(postId);
+      btn.classList.toggle('liked', data.liked);
+      btn.querySelector('svg').setAttribute('fill', data.liked ? 'currentColor' : 'none');
+      document.querySelectorAll(`.lc-${postId}`).forEach(el => el.textContent = formatCount(data.likeCount));
+    } catch {}
+  }
+
+  async function toggleSave(postId, btn) {
+    try { const data = await api.savePost(postId); btn.classList.toggle('saved', data.saved); showToast(data.saved ? 'Saved! 🌷' : 'Removed.', 'success'); } catch {}
+  }
+
+  async function likeComment(id, btn) {
+    try { const data = await api.likeComment(id); btn.classList.toggle('liked', data.liked); btn.textContent = `♡ ${data.likeCount||''}`; } catch {}
+  }
+
+  function closePostModal(e) { if (e.target.id === 'post-modal-overlay') closePostModalDirect(); }
+  function closePostModalDirect() { document.getElementById('post-modal-overlay').classList.add('hidden'); }
+
+  async function loadSuggestions() {
+    try {
+      const { suggestions } = await api.getSuggestions();
+      const list = document.getElementById('suggestions-list');
+      if (!suggestions.length) { list.innerHTML = '<div style="padding:12px 18px;color:var(--text-muted);font-size:0.82rem;">No suggestions.</div>'; return; }
+      list.innerHTML = suggestions.map(u => `
+        <div class="suggestion-item">
+          <a href="/pages/profile.html?user=${u.username}">${getAvatarHTML(u,'avatar-sm')}</a>
+          <div class="suggestion-info">
+            <div class="suggestion-name" onclick="window.location='/pages/profile.html?user=${u.username}'">${u.displayName||u.username}</div>
+            <div class="suggestion-handle">@${u.username}</div>
+          </div>
+          <button class="follow-btn-sm" onclick="quickFollow('${u._id}',this)">Follow</button>
+        </div>`).join('');
+    } catch {}
+  }
+
+  async function quickFollow(id, btn) {
+    try { const { isFollowing } = await api.followUser(id); btn.textContent = isFollowing ? 'Following' : 'Follow'; btn.classList.toggle('following', isFollowing); } catch {}
+  }
+
+  let searchTimer;
+  function debounceSearch(q) {
+    clearTimeout(searchTimer);
+    const results = document.getElementById('search-results');
+    if (!q.trim()) { results.style.display = 'none'; return; }
+    searchTimer = setTimeout(async () => {
+      try {
+        const { users } = await api.searchUsers(q);
+        if (!users.length) { results.style.display = 'none'; return; }
+        results.innerHTML = users.map(u => `<a class="search-result-item" href="/pages/profile.html?user=${u.username}">${getAvatarHTML(u,'avatar-xs')}<div><div style="font-family:var(--font-display);font-size:0.85rem;font-weight:600;font-style:italic;">${u.displayName}</div><div style="font-size:0.75rem;color:var(--text-muted)">@${u.username}</div></div></a>`).join('');
+        results.style.display = 'block';
+      } catch {}
+    }, 350);
+  }
+
+  async function handleLogout(e) {
+    e.preventDefault(); e.stopPropagation();
+    try { await api.logout(api.getRefreshToken()); } finally { api.clearTokens(); window.location.href = '/pages/auth.html'; }
+  }
+
+  // ── CLIENT CHAT DRAWER CONTROLLER ──
+  function toggleChatDrawer(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    const drawer = document.getElementById('chat-drawer');
+    const isShowing = drawer.classList.toggle('open');
+    chatIsOpen = isShowing;
+
+    if (isShowing) {
+      showChatListScreen();
+      loadChatConversations();
+    } else {
+      if (pollIntervalId) {
+        clearInterval(pollIntervalId);
+        pollIntervalId = null;
+      }
+      currentChatPartnerId = null;
+    }
+  }
+
+  function showChatListScreen() {
+    document.getElementById('chat-screen-conversation').classList.remove('slide-in');
+    document.getElementById('chat-screen-list').classList.remove('slide-out');
+    if (pollIntervalId) {
+      clearInterval(pollIntervalId);
+      pollIntervalId = null;
+    }
+    currentChatPartnerId = null;
+    loadChatConversations();
+  }
+
+  async function pollUnreadCounts() {
+    if (!api.isLoggedIn()) return;
+    try {
+      const { conversations } = await api.getConversations();
+      let totalUnread = 0;
+      conversations.forEach(c => {
+        totalUnread += (c.unreadCount || 0);
+      });
+      const badge = document.getElementById('nav-chat-badge');
+      if (totalUnread > 0) {
+        badge.textContent = totalUnread;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    } catch {}
+  }
+
+  async function loadChatConversations() {
+    const listContainer = document.getElementById('chat-contacts-list');
+    listContainer.innerHTML = '<div class="spinner"></div>';
+    try {
+      const { conversations } = await api.getConversations();
+      if (!conversations.length) {
+        listContainer.innerHTML = `
+          <div class="empty-state" style="padding: 40px 10px;">
+            <div class="empty-icon" style="font-size: 1.5rem;">🌌</div>
+            <p style="font-size: 0.85rem;">No whispers shared yet.<br>Visit profiles to start private chats.</p>
+          </div>`;
+        return;
+      }
+      listContainer.innerHTML = conversations.map(c => {
+        const contact = c.contact;
+        const lastMsg = c.lastMessage;
+        const isUnread = c.unreadCount > 0;
+        const statusTime = timeAgo(lastMsg.createdAt);
+        return `
+          <div class="chat-contact-item" onclick="openConversation('${contact._id}', '${contact.displayName || contact.username}', '@${contact.username}', '${contact.avatar || ''}')">
+            ${getAvatarHTML(contact, 'avatar-md')}
+            <div class="chat-contact-info">
+              <div class="chat-contact-header">
+                <span class="chat-contact-name">${contact.displayName || contact.username}</span>
+                <span class="chat-contact-time">${statusTime}</span>
+              </div>
+              <div class="chat-contact-preview">
+                <span style="${isUnread ? 'font-weight: 600; color: var(--text-primary);' : ''}">${escHtml(lastMsg.content)}</span>
+                ${isUnread ? `<span class="chat-contact-unread">${c.unreadCount}</span>` : ''}
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    } catch {
+      listContainer.innerHTML = '<div class="empty-state"><p>Connection error.</p></div>';
+    }
+  }
+
+  async function openConversation(partnerId, name, handle, avatar) {
+    currentChatPartnerId = partnerId;
+    document.getElementById('chat-convo-name').textContent = name;
+    document.getElementById('chat-convo-handle').textContent = handle;
+    const avatarBox = document.getElementById('chat-convo-avatar');
+    if (avatar) {
+      avatarBox.innerHTML = `<img src="${avatar}" class="avatar avatar-sm">`;
+    } else {
+      avatarBox.innerHTML = `<div class="avatar avatar-placeholder avatar-sm" style="font-size: 0.8rem;">${name.charAt(0).toUpperCase()}</div>`;
+    }
+
+    document.getElementById('chat-screen-list').classList.add('slide-out');
+    document.getElementById('chat-screen-conversation').classList.add('slide-in');
+    
+    const msgContainer = document.getElementById('chat-messages-container');
+    msgContainer.innerHTML = '<div class="spinner"></div>';
+    
+    await refreshMessages(true);
+    
+    try {
+      await api.markChatRead(partnerId);
+      pollUnreadCounts();
+    } catch {}
+
+    if (pollIntervalId) clearInterval(pollIntervalId);
+    pollIntervalId = setInterval(() => refreshMessages(false), 3000);
+  }
+
+  async function refreshMessages(shouldScroll = false) {
+    if (!currentChatPartnerId) return;
+    try {
+      const { messages } = await api.getChatHistory(currentChatPartnerId);
+      const container = document.getElementById('chat-messages-container');
+      const html = messages.map(m => {
+        const isSent = m.sender._id.toString() === currentUser._id.toString() || m.sender.toString() === currentUser._id.toString();
+        const timeStr = new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `
+          <div class="chat-msg-row ${isSent ? 'sent' : 'received'}">
+            <div class="chat-msg-bubble">
+              <div>${escHtml(m.content)}</div>
+              <div class="chat-msg-meta">${timeStr}</div>
+            </div>
+          </div>`;
+      }).join('');
+
+      if (container.innerHTML !== html) {
+        container.innerHTML = html;
+        if (shouldScroll) container.scrollTop = container.scrollHeight;
+      }
+    } catch {}
+  }
+
+  async function sendChatMessage() {
+    const input = document.getElementById('chat-message-input');
+    const content = input.value.trim();
+    if (!content || !currentChatPartnerId) return;
+    input.value = '';
+    try {
+      const data = await api.sendMessage(currentChatPartnerId, content);
+      const container = document.getElementById('chat-messages-container');
+      const timeStr = new Date(data.message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      container.insertAdjacentHTML('beforeend', `
+        <div class="chat-msg-row sent">
+          <div class="chat-msg-bubble">
+            <div>${escHtml(data.message.content)}</div>
+            <div class="chat-msg-meta">${timeStr}</div>
+          </div>
+        </div>`);
+      container.scrollTop = container.scrollHeight;
+    } catch {
+      showToast('Could not whisper message.', 'error');
+    }
+  }
+
+  function escHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+  init();
+</script>
+</body>
+</html>
